@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berkeley Vale Workflows</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#eef1f5;--surface:#ffffff;--card:#ffffff;--border:#d8dce2;
+  --text:#1c2128;--muted:#5b6470;--subtle:#88919c;--chip-bg:#f3f4f6;
+  --topbar:#1a2233;
+  --blue:#2f6fed;--green:#1f9d55;--amber:#c98a1a;--red:#d64545;--purple:#7c4fd6;--pink:#c2477a;
+  --am-hdr:#2f6fed;--pm-hdr:#1f9d55;--nd-hdr:#7c4fd6;
+  --am:#2f6fed;--am-bg:rgba(47,111,237,.10);--am-border:rgba(47,111,237,.3);
+  --pm:#1f9d55;--pm-bg:rgba(31,157,85,.10);--pm-border:rgba(31,157,85,.3);
+  --nd:#7c4fd6;--nd-bg:rgba(124,79,214,.10);--nd-border:rgba(124,79,214,.3);
+  --north:#7c4fd6;--south:#c2477a;--r:8px;
+  --done-bg:#dff5e6;--done-border:#9bd9b2;--done-text:#15803d;
+  --vacant-bg:#fde8d2;--vacant-border:#f0c089;--vacant-text:#b3631a;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;}
+a{color:var(--blue);text-decoration:none;}
+
+/* ── TOP NAV ─────────────────────────────────────────────── */
+.topbar{background:var(--topbar);border-bottom:1px solid var(--topbar);padding:0 20px;display:flex;align-items:center;position:sticky;top:0;z-index:200;}
+.brand{font-size:15px;font-weight:700;padding:14px 0;margin-right:24px;white-space:nowrap;color:#f4f6f9;}
+.brand span{color:#a48cf0;}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{background:none;border:none;color:#a4adba;font-size:13px;font-weight:500;padding:14px 14px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav-tab:hover{color:#ffffff;}
+.nav-tab.active{color:#ffffff;border-bottom-color:#4c8dff;}
+.npill{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px;vertical-align:middle;}
+.pc{background:rgba(47,111,237,.25);color:#8ab4ff;}
+.pr{background:rgba(31,157,85,.25);color:#6fe09a;}
+.pw{background:rgba(124,79,214,.25);color:#c4a5f5;}
+.pt{background:rgba(47,111,237,.25);color:#8ab4ff;}
+.pq{background:rgba(194,71,122,.25);color:#f0a0c0;}
+.fb-btn{margin-left:auto;background:rgba(255,160,0,.18);color:#ffb84d;border:1px solid rgba(255,160,0,.4);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.fb-btn:hover{background:rgba(255,160,0,.28);}
+
+/* ── PANELS ─────────────────────────────────────────────── */
+.panel{display:none;padding:20px;max-width:1500px;margin:0 auto;}
+.panel.active{display:block;}
+
+/* ── PROGRESS BAR ────────────────────────────────────────── */
+.prog-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.prog-label{font-size:13px;font-weight:700;color:var(--text);min-width:80px;}
+.prog-bar-outer{flex:1;min-width:100px;background:var(--border);border-radius:4px;height:8px;overflow:hidden;}
+.prog-bar-inner{height:100%;border-radius:4px;transition:width .4s;}
+.prog-pct{font-size:13px;font-weight:700;min-width:36px;text-align:right;}
+.prog-counts{font-size:12px;color:var(--muted);margin-left:auto;}
+
+/* ── SECTION HEAD ────────────────────────────────────────── */
+.sec-head{margin-bottom:14px;}
+.sec-head h2{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;margin-bottom:2px;letter-spacing:-0.3px;}
+.sec-head p{font-size:12px;color:var(--muted);}
+
+/* ── QUARTER / ACTION ROW ────────────────────────────────── */
+.qrow{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.qbtn{background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all .15s;}
+.qbtn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.arow{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;}
+.bsm{background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.bsm:hover{color:var(--text);border-color:var(--subtle);}
+.bwarn{color:var(--amber);border-color:rgba(210,153,34,.4);}
+.bwarn:hover{background:rgba(210,153,34,.1);}
+
+/* ── CONV/REV QUARTERLY LAYOUT ───────────────────────────── */
+.wing-block{margin-bottom:24px;}
+.wing-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.wlabel{font-size:11px;font-weight:700;letter-spacing:.5px;padding:4px 12px;border-radius:20px;text-transform:uppercase;}
+.wlabel.north{background:#1a2233;color:#ffffff;}
+.wlabel.south{background:#7c3aed;color:#ffffff;}
+.wsub{font-size:11px;color:var(--muted);}
+.wcnt{margin-left:auto;font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:2px 10px;}
+.month-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.month-cols-6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+@media(max-width:1100px){.month-cols-6{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.month-cols{grid-template-columns:1fr;}.month-cols-6{grid-template-columns:1fr 1fr;}}
+.month-col{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.month-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;}
+.month-hdr.m1{background:#1d4ed8;color:#ffffff;border-bottom-color:#1d4ed8;}
+.month-hdr.m2{background:#15803d;color:#ffffff;border-bottom-color:#15803d;}
+.month-hdr.m3{background:#7c3aed;color:#ffffff;border-bottom-color:#7c3aed;}
+.month-hdr.m4{background:#1d4ed8;color:#ffffff;border-bottom-color:#1d4ed8;}
+.month-hdr.m5{background:#15803d;color:#ffffff;border-bottom-color:#15803d;}
+.month-hdr.m6{background:#7c3aed;color:#ffffff;border-bottom-color:#7c3aed;}
+.month-cnt{font-size:10px;font-weight:500;opacity:.8;}
+.bed-grid{display:flex;flex-wrap:wrap;gap:4px;padding:8px;}
+.bed{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:11.5px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid transparent;
+  transition:all .12s;
+  user-select:none;
+  position:relative;
+  min-width:56px;
+  text-align:left;
+}
+.bed .bed-staff{
+  display:block;
+  font-size:10px;
+  font-weight:500;
+  opacity:.85;
+  margin-top:1px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:90px;
+}
+.bed .bed-check{
+  position:absolute;
+  top:-5px;
+  right:-5px;
+  width:15px;
+  height:15px;
+  background:#16a34a;
+  color:#ffffff;
+  border-radius:50%;
+  font-size:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 1px 2px rgba(0,0,0,.15);
+}
+.bed.not-done{background:#f4f5f7;border-color:#e1e4e8;color:#3d434a;}
+.bed.not-done:hover{border-color:#aab1bb;color:#1a1d21;background:#ebedf0;}
+.bed.done{background:var(--done-bg);border-color:var(--done-border);color:var(--done-text);padding-right:20px;}
+.bed.na{background:var(--vacant-bg);border-color:var(--vacant-border);color:var(--vacant-text);text-decoration:none;}
+
+/* ── WEEK NAV ────────────────────────────────────────────── */
+.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.week-nav button{background:var(--card);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;line-height:1;}
+.week-nav button:hover{color:var(--text);}
+.week-lbl{font-size:13px;font-weight:600;}
+
+/* ── LEGEND ROW ──────────────────────────────────────────── */
+.legend-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.leg{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:default;}
+.leg.am{background:var(--am-bg);color:var(--am);border:1px solid var(--am-border);}
+.leg.pm{background:var(--pm-bg);color:var(--pm);border:1px solid var(--pm-border);}
+.leg.nd{background:var(--nd-bg);color:var(--nd);border:1px solid var(--nd-border);}
+.leg.done-leg{background:var(--done-bg);color:var(--done-text);border:1px solid var(--done-border);}
+.leg.notdone-leg{background:#f4f5f7;color:#5b6470;border:1px solid #d8dce2;}
+.leg.vacant-leg{background:var(--vacant-bg);color:var(--vacant-text);border:1px solid var(--vacant-border);}
+.leg-hint{font-size:11px;color:var(--subtle);margin-left:auto;}
+
+/* ── TWO-WING GRID ───────────────────────────────────────── */
+.wings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:900px){.wings-grid{grid-template-columns:1fr;}}
+
+/* ── WING COLUMN ─────────────────────────────────────────── */
+.wing-col{min-width:0;}
+.wing-col-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border);border-bottom:none;}
+.wing-col-hdr.north{background:rgba(188,140,255,.08);border-color:rgba(188,140,255,.25);}
+.wing-col-hdr.south{background:rgba(247,120,186,.08);border-color:rgba(247,120,186,.25);}
+.wing-col-name{font-size:13px;font-weight:700;}
+.wing-col-name.north{color:var(--north);}
+.wing-col-name.south{color:var(--south);}
+.wing-col-sub{font-size:11px;color:var(--muted);}
+.wing-col-cnt{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);}
+
+/* ── DAY CARDS ───────────────────────────────────────────── */
+.day-cards{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);padding:8px;background:var(--surface);}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.day-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a2233;color:#ffffff;}
+.day-hdr.sun{background:#9a3412;}
+.day-name{font-size:12px;font-weight:700;color:#ffffff;}
+.day-hdr.sun .day-name{color:#ffffff;}
+.day-beds-count{font-size:10px;color:#b9c0cc;}
+.day-hdr.sun .day-beds-count{color:#f3d4bd;}
+.day-prog{margin-left:auto;font-size:11px;font-weight:600;color:#b9c0cc;}
+.day-hdr.sun .day-prog{color:#f3d4bd;}
+.day-prog.all-done{color:#7ee2a8;}
+
+/* ── SHIFT COLUMNS ───────────────────────────────────────── */
+.shifts-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:none;}
+.shift-col{padding:6px 8px;border-right:1px solid var(--border);}
+.shift-col:last-child{border-right:none;}
+.sh-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;padding:3px 6px;border-radius:6px;}
+.sh-hdr.am-hdr{background:#1d4ed8;}
+.sh-hdr.pm-hdr{background:#15803d;}
+.sh-hdr.nd-hdr{background:#7c3aed;}
+.sh-tag{font-size:9px;font-weight:700;letter-spacing:.5px;color:#ffffff;}
+.sh-cnt{font-size:9px;color:rgba(255,255,255,.85);font-weight:600;}
+.sh-cnt.done{color:#ffffff;}
+.wbeds{display:flex;flex-wrap:wrap;gap:3px;min-height:24px;}
+.wbed{
+  padding:4px 8px;
+  border-radius:7px;
+  font-size:10.5px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid transparent;
+  transition:all .12s;
+  user-select:none;
+  line-height:1.3;
+  position:relative;
+  text-align:left;
+}
+.wbed .wbed-staff{
+  display:block;
+  font-size:9px;
+  font-weight:500;
+  opacity:.85;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:80px;
+}
+.wbed .wbed-check{
+  position:absolute;
+  top:-4px;
+  right:-4px;
+  width:13px;
+  height:13px;
+  background:#16a34a;
+  color:#ffffff;
+  border-radius:50%;
+  font-size:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 1px 2px rgba(0,0,0,.15);
+}
+.wbed.not-done{background:#f4f5f7;border-color:#e1e4e8;color:#3d434a;}
+.wbed.not-done:hover{border-color:#aab1bb;color:#1a1d21;background:#ebedf0;}
+.wbed.done{background:var(--done-bg);border-color:var(--done-border);color:var(--done-text);padding-right:16px;}
+.wbed.na{background:var(--vacant-bg);border-color:var(--vacant-border);color:var(--vacant-text);text-decoration:none;}
+.catchup-note{font-size:10px;color:var(--purple);padding:5px 10px;background:rgba(124,79,214,.06);border-top:1px solid rgba(124,79,214,.2);}
+
+
+
+
+/* ── TEAM RECOGNITION ────────────────────────────────────── */
+.recog-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.recog-grid{grid-template-columns:1fr;}}
+.recog-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.recog-card h3{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.lb{list-style:none;}
+.lb li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.lb li:last-child{border-bottom:none;}
+.lbr{font-size:11px;font-weight:700;color:var(--subtle);width:20px;}
+.lbn{flex:1;}
+.lbc{font-weight:700;}
+.lbb{height:4px;border-radius:2px;margin-top:3px;}
+.stats-row{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;flex:1;min-width:100px;}
+.stat-box .sv{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+.stat-box .sl{font-size:11px;color:var(--muted);}
+
+/* ── MODALS ──────────────────────────────────────────────── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:700;align-items:center;justify-content:center;padding:20px;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:4px;}
+.modal .msub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.modal input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-size:14px;color:var(--text);margin-bottom:12px;}
+.modal input:focus{outline:none;border-color:var(--blue);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+.bprim{background:var(--blue);border:none;color:#000;font-size:13px;font-weight:700;padding:9px 18px;border-radius:6px;cursor:pointer;}
+.bprim:hover{opacity:.85;}
+.bghost{background:none;border:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:600;padding:9px 18px;border-radius:6px;cursor:pointer;}
+.bghost:hover{color:var(--text);}
+.bunch{background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.35);color:var(--red);font-size:13px;font-weight:600;padding:9px 18px;border-radius:6px;cursor:pointer;}
+.mts{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.merr{color:var(--red);font-size:12px;margin-bottom:8px;display:none;}
+
+/* ── SUNDAY CATCH-UP OVERLAY ─────────────────────────────── */
+.catchup-overlay{display:none;position:fixed;inset:0;background:#0d1117;z-index:600;overflow-y:auto;}
+.catchup-overlay.open{display:block;}
+.cu-header{display:flex;align-items:center;gap:20px;padding:18px 24px;background:#0d1117;border-bottom:1px solid #30363d;position:sticky;top:0;flex-wrap:wrap;}
+.cu-title{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#fbbf24;display:flex;align-items:center;gap:8px;}
+.cu-stat{text-align:center;}
+.cu-stat .cu-num{font-size:24px;font-weight:800;line-height:1;}
+.cu-stat .cu-lbl{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#8b949e;}
+.cu-stat.outstanding .cu-num{color:#f87171;}
+.cu-stat.complete .cu-num{color:#4ade80;}
+.cu-stat.na .cu-num{color:#fbbf24;}
+.cu-bar-outer{flex:1;min-width:120px;height:6px;background:#30363d;border-radius:3px;overflow:hidden;}
+.cu-bar-inner{height:100%;background:linear-gradient(90deg,#f87171,#fbbf24,#4ade80);}
+.cu-close{background:#21262d;border:1px solid #30363d;color:#8b949e;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;margin-left:auto;}
+.cu-close:hover{color:#fff;border-color:#525a62;}
+.cu-body{padding:20px 24px;}
+.cu-wing-pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:5px 16px;border-radius:20px;margin-bottom:14px;}
+.cu-wing-pill.north{background:#1e3a8a;color:#fff;}
+.cu-wing-pill.south{background:#6d28d9;color:#fff;}
+.cu-day-block{margin-bottom:20px;}
+.cu-day-title{font-size:13px;font-weight:700;color:#c9d1d9;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #21262d;}
+.cu-chip-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.cu-chip{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:600;
+  border:1.5px solid transparent;
+  min-width:58px;
+  text-align:left;
+  line-height:1.3;
+  cursor:pointer;
+  transition:transform .1s,filter .1s;
+}
+.cu-chip:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.cu-chip .cu-shift{display:block;font-size:9px;font-weight:600;opacity:.75;}
+.cu-chip .cu-name{display:block;font-size:9px;font-weight:500;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;}
+.cu-chip.out{background:rgba(248,113,113,.08);border-color:#f87171;color:#f87171;}
+.cu-chip.done{background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.25);color:#4ade80;}
+.cu-chip.na{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.25);color:#fbbf24;}
+.ov-panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;overflow-y:auto;padding:20px;}
+.ov-panel.open{display:block;}
+.ov-inner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:700px;margin:0 auto;}
+.ov-inner h3{font-size:16px;font-weight:700;margin-bottom:14px;}
+.ov-close{float:right;background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;}
+.out-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.out-bed{background:rgba(248,81,73,.13);border:1px solid rgba(248,81,73,.35);color:var(--red);padding:3px 9px;border-radius:6px;font-size:12px;}
+.out-none{font-size:13px;color:var(--green);}
+
+/* ── FIREBASE MODAL ──────────────────────────────────────── */
+.fb-modal{max-width:460px;}
+.fb-modal p{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;}
+.fb-modal label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.fb-modal input{margin-bottom:10px;}
+.fb-st{font-size:12px;margin-top:8px;}
+.fb-st.ok{color:var(--green);}
+.fb-st.err{color:var(--red);}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topbar">
+  <div class="brand">⚡ Berkeley Vale <span>Workflows</span><span style="font-size:10px;color:#7d8aa0;font-weight:400;margin-left:6px;">Care Management</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPanel('conv',this)">💬 Care Conversations <span class="npill pc" id="pill-conv">0%</span></button>
+    <button class="nav-tab" onclick="switchPanel('rev',this)">📋 Care Reviews <span class="npill pr" id="pill-rev">0%</span></button>
+    <button class="nav-tab" onclick="switchPanel('week',this)">🗓 Weekly Notes <span class="npill pw" id="pill-week">0%</span></button>
+    <button class="nav-tab" onclick="switchPanel('recog',this)">🏆 Team Recognition <span class="npill pq" id="pill-recog">0</span></button>
+  </div>
+  <button class="fb-btn" onclick="openFb()">🔥 Firebase</button>
+</div>
+
+<!-- ═══ PANEL 1 — CARE CONVERSATIONS ═══ -->
+<div id="panel-conv" class="panel active">
+  <div class="sec-head"><h2>💬 Care Conversations</h2><p>6-monthly tracker · Rooms split across 6 months · Aligned with Care Reviews · Click any room to record</p></div>
+  <div class="prog-wrap">
+    <span class="prog-label" id="conv-n-lbl">North 0/0</span>
+    <div class="prog-bar-outer"><div class="prog-bar-inner" id="conv-bar" style="width:0%;background:linear-gradient(90deg,var(--blue),var(--purple))"></div></div>
+    <span class="prog-pct" id="conv-pct">0%</span>
+    <span class="prog-counts" id="conv-s-lbl">South 0/0 · Overall 0%</span>
+  </div>
+  <div class="qrow">
+    <button class="qbtn active" onclick="setH('conv',1,this)">H1 — Jan · Feb · Mar · Apr · May · Jun</button>
+    <button class="qbtn" onclick="setH('conv',2,this)">H2 — Jul · Aug · Sep · Oct · Nov · Dec</button>
+    <div class="arow">
+      <button class="bsm bwarn" onclick="showOut('conv')">⚠ Outstanding</button>
+      <button class="bsm" onclick="doCSV('conv')">⬇ CSV</button>
+      <button class="bsm" onclick="window.print()">🖨</button>
+    </div>
+  </div>
+  <div class="legend-row">
+    <span class="leg notdone-leg">Not done</span>
+    <span class="leg done-leg">✓ Done</span>
+    <span class="leg vacant-leg">Vacant/N/A</span>
+  </div>
+  <div id="conv-beds"></div>
+  <p style="font-size:11px;color:var(--subtle);margin-top:10px;">Click room → enter name → mark complete · Right-click = Vacant/N/A</p>
+</div>
+
+<!-- ═══ PANEL 2 — CARE REVIEWS ═══ -->
+<div id="panel-rev" class="panel">
+  <div class="sec-head"><h2>📋 Care Reviews</h2><p>Quarterly tracker · Rooms split across 3 months · Tracked independently from Conversations</p></div>
+  <div class="prog-wrap">
+    <span class="prog-label" id="rev-n-lbl">North 0/0</span>
+    <div class="prog-bar-outer"><div class="prog-bar-inner" id="rev-bar" style="width:0%;background:linear-gradient(90deg,var(--green),#85e89d)"></div></div>
+    <span class="prog-pct" id="rev-pct">0%</span>
+    <span class="prog-counts" id="rev-s-lbl">South 0/0 · Overall 0%</span>
+  </div>
+  <div class="qrow">
+    <button class="qbtn" onclick="setQ('rev',1,this)">Q1 Jan·Feb·Mar</button>
+    <button class="qbtn active" onclick="setQ('rev',2,this)">Q2 Apr·May·Jun</button>
+    <button class="qbtn" onclick="setQ('rev',3,this)">Q3 Jul·Aug·Sep</button>
+    <button class="qbtn" onclick="setQ('rev',4,this)">Q4 Oct·Nov·Dec</button>
+    <div class="arow">
+      <button class="bsm bwarn" onclick="showOut('rev')">⚠ Outstanding</button>
+      <button class="bsm" onclick="doCSV('rev')">⬇ CSV</button>
+      <button class="bsm" onclick="window.print()">🖨</button>
+      <button class="bsm bwarn" onclick="askReset('rev')">Reset Quarter</button>
+    </div>
+  </div>
+  <div class="legend-row">
+    <span class="leg notdone-leg">Not done</span>
+    <span class="leg done-leg">✓ Done</span>
+    <span class="leg vacant-leg">Vacant/N/A</span>
+  </div>
+  <div id="rev-beds"></div>
+  <p style="font-size:11px;color:var(--subtle);margin-top:10px;">Click room → enter name → mark complete · Right-click = Vacant/N/A</p>
+</div>
+
+<!-- ═══ PANEL 3 — WEEKLY NOTES ═══ -->
+<div id="panel-week" class="panel">
+  <div class="sec-head"><h2>🗓 Weekly Progress Notes</h2><p>RN/EN notes · North &amp; South side by side · One entry per room per week</p></div>
+  <div class="prog-wrap">
+    <span class="prog-label" id="week-n-lbl">North 0/0</span>
+    <div class="prog-bar-outer"><div class="prog-bar-inner" id="week-bar" style="width:0%;background:linear-gradient(90deg,var(--purple),var(--pink))"></div></div>
+    <span class="prog-pct" id="week-pct">0%</span>
+    <span class="prog-counts" id="week-s-lbl">South 0/0 · Overall 0%</span>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+    <div class="week-nav" style="margin-bottom:0;">
+      <button onclick="chWeek(-1)">←</button>
+      <div class="week-lbl" id="week-lbl">Loading…</div>
+      <button onclick="chWeek(1)">→</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="bsm bwarn" onclick="showCatchup()">☀ Sunday Catch-up</button>
+      <button class="bsm" onclick="doCSV('week')">⬇ CSV</button>
+      <button class="bsm" onclick="window.print()">🖨 Print</button>
+
+    </div>
+  </div>
+  <div class="legend-row">
+    <span class="leg am">AM</span>
+    <span class="leg pm">PM</span>
+    <span class="leg nd">ND</span>
+    <span class="leg done-leg">✓ Done</span>
+    <span class="leg-hint">Click room → name → complete · Right-click = Vacant/N/A</span>
+  </div>
+  <div class="wings-grid" id="week-grid"></div>
+</div>
+
+<!-- SUNDAY CATCH-UP OVERLAY -->
+<div class="catchup-overlay" id="catchup-overlay">
+  <div class="cu-header">
+    <div class="cu-title">☀ Sunday Catch-up</div>
+    <div class="cu-stat outstanding"><div class="cu-num" id="cu-outstanding">0</div><div class="cu-lbl">Outstanding</div></div>
+    <div class="cu-stat complete"><div class="cu-num" id="cu-complete">0</div><div class="cu-lbl">Complete</div></div>
+    <div class="cu-stat na"><div class="cu-num" id="cu-na">0</div><div class="cu-lbl">N/A</div></div>
+    <div class="cu-bar-outer"><div class="cu-bar-inner" id="cu-bar" style="width:0%"></div></div>
+    <button class="cu-close" onclick="closeCatchup()">✕ Close</button>
+  </div>
+  <div class="cu-body" id="cu-body"></div>
+</div>
+
+<!-- ═══ PANEL 5 — TEAM RECOGNITION ═══ -->
+<div id="panel-recog" class="panel">
+  <div class="sec-head"><h2>🏆 Team Recognition</h2><p>Built from Care Conversations &amp; Reviews completions</p></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="sv" id="rg-tot">0</div><div class="sl">Total Entries</div></div>
+    <div class="stat-box"><div class="sv" style="color:var(--blue)" id="rg-conv">0</div><div class="sl">💬 Conversations</div></div>
+    <div class="stat-box"><div class="sv" style="color:var(--green)" id="rg-rev">0</div><div class="sl">📋 Reviews</div></div>
+  </div>
+  <div class="recog-grid">
+    <div class="recog-card"><h3>💬 Care Conversations</h3><ul class="lb" id="lb-conv"><li style="color:var(--muted);font-size:13px">No entries yet this quarter</li></ul></div>
+    <div class="recog-card"><h3>📋 Care Reviews</h3><ul class="lb" id="lb-rev"><li style="color:var(--muted);font-size:13px">No entries yet this quarter</li></ul></div>
+  </div>
+</div>
+
+<!-- OUTSTANDING OVERLAY -->
+<div class="ov-panel" id="ov-out">
+  <div class="ov-inner">
+    <button class="ov-close" onclick="closeOv()">✕ Close</button>
+    <h3 id="ov-title">Outstanding</h3>
+    <div id="ov-body"></div>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal-ov" id="modal-reset">
+  <div class="modal" style="max-width:340px;">
+    <h3>Authorisation required</h3>
+    <div class="msub">Reset <strong id="reset-lbl"></strong></div>
+    <div class="merr" id="reset-err">✕ Incorrect password.</div>
+    <input type="password" id="reset-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doReset()">
+    <div class="modal-btns">
+      <button class="bghost" onclick="closeM('reset')">Cancel</button>
+      <button class="bprim" style="background:rgba(248,81,73,.2);color:var(--red);border:1px solid rgba(248,81,73,.4);" onclick="doReset()">Confirm Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD MODAL (conv/rev/week) -->
+<div class="modal-ov" id="modal-rec">
+  <div class="modal">
+    <h3 id="rec-title">Recording</h3>
+    <div class="msub" id="rec-sub">—</div>
+    <div class="mts" id="rec-ts">🕐 —</div>
+    <input type="text" id="rec-name" placeholder="Staff Name" onkeydown="if(event.key==='Enter')doComplete()">
+    <div class="modal-btns">
+      <button class="bghost" onclick="closeM('rec')">Cancel</button>
+      <button class="bunch" onclick="doUncheck()">↩ Uncheck</button>
+      <button class="bghost" onclick="doNA()">N/A</button>
+      <button class="bprim" onclick="doComplete()">✓ Mark Complete</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE MODAL -->
+<div class="modal-ov" id="modal-fb">
+  <div class="modal fb-modal">
+    <button class="ov-close" style="float:right;margin-bottom:8px;" onclick="closeM('fb')">✕</button>
+    <h3>🔥 Set Up Real-Time Sync</h3>
+    <p>Connect Firebase so all staff share data live from any device.<br>
+    New? Go to <a href="https://firebase.google.com" target="_blank">firebase.google.com</a> → create project → Realtime Database → Project Settings → Web → copy 3 values.</p>
+    <label>Database URL</label><input type="text" id="fb-url" placeholder="https://your-project.firebaseio.com">
+    <label>API Key</label><input type="text" id="fb-key" placeholder="AIzaSy...">
+    <label>Project ID</label><input type="text" id="fb-pid" placeholder="your-project-id">
+    <div class="modal-btns"><button class="bghost" onclick="closeM('fb')">Cancel</button><button class="bprim" onclick="connectFb()">✓ Connect &amp; Save</button></div>
+    <div class="fb-st" id="fb-st"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ROOM DATA
+// ═══════════════════════════════════════════════════════════
+const ALL_ROOMS = {
+  north: [
+    'Fuller 3A','Fuller 4A','Fuller 5A','Fuller 6A','Fuller 7A','Fuller 8A','Fuller 9A','Fuller 10A',
+    'Fuller 11A','Fuller 12A','Fuller 13A','Fuller 14A','Fuller 15A','Fuller 16A','Fuller 17A','Fuller 18A',
+    'Fuller 19A','Fuller 20A','Fuller 21A','Fuller 22A','Fuller 23A','Fuller 24A','Fuller 25A','Fuller 26A',
+    'Fuller 27A','Fuller 28A','Fuller 29A','Fuller 30A','Fuller 31A','Fuller 32A','Fuller 33A','Fuller 34A',
+    'Fuller 35A','Fuller 36A','Fuller 37A','Fuller 38A','Fuller 39A',
+    'Grant 1A','Grant 2A','Grant 40A','Grant 41A','Grant 42A','Grant 43A','Grant 44A','Grant 45A',
+    'Grant 46A','Grant 47A','Grant 48A','Grant 49A','Grant 50A','Grant 51A','Grant 52A','Grant 53A',
+    'Grant 54A','Grant 55A','Grant 56A','Grant 57A','Grant 58A','Grant 59A','Grant 60A','Grant 61A',
+    'Grant 62A','Grant 63A','Grant 64A','Grant 65A','Grant 66A','Grant 67A','Grant 68A','Grant 69A',
+    'Grant 70A','Grant 71A','Grant 72A','Grant 73A','Grant 74A','Grant 75A','Grant 76A'
+  ],
+  south: [
+    'Stanford 20B','Stanford 20C','Stanford 20D','Stanford 21A','Stanford 22A','Stanford 23A','Stanford 23B',
+    'Stanford 24A','Stanford 25A','Stanford 26A','Stanford 27A','Stanford 28A','Stanford 28B','Stanford 29A',
+    'Stanford 29B','Stanford 30A','Stanford 30B','Stanford 30D','Stanford 31A','Stanford 31B','Stanford 31C',
+    'Stanford 32A','Stanford 32B','Stanford 33A','Stanford 33B','Stanford 34B','Stanford 34C','Stanford 34D',
+    'Stanford 35B','Stanford 35C','Stanford 35D','Stanford 36A','Stanford 36B',
+    'Graham 1A','Graham 1B','Graham 2A','Graham 2B','Graham 2C','Graham 3B','Graham 3C','Graham 3D',
+    'Graham 4A','Graham 4B','Graham 5A','Graham 5B','Graham 6B','Graham 6C','Graham 6D','Graham 7A',
+    'Graham 7B','Graham 7C','Graham 8A','Graham 8B','Graham 9A','Graham 9B','Graham 10A','Graham 11A',
+    'Graham 12A','Graham 13A','Graham 14A','Graham 14B','Graham 15A','Graham 16A','Graham 17B','Graham 17C',
+    'Graham 17D','Graham 18A','Graham 18B','Graham 18C','Graham 19A','Graham 19B','Graham 19C'
+  ]
+};
+
+// Weekly schedule: each room appears ONCE per week
+// Format: [di][shift] = [rooms]  (di 0=Mon..6=Sun)
+const NORTH_SCHED = [
+  [["Fuller 3A", "Fuller 4A", "Fuller 5A", "Fuller 6A"],["Fuller 7A", "Fuller 8A", "Fuller 9A", "Fuller 10A"],["Fuller 11A", "Fuller 12A", "Fuller 13A"]],
+  [["Fuller 14A", "Fuller 15A", "Fuller 16A", "Fuller 17A"],["Fuller 18A", "Fuller 19A", "Fuller 20A", "Fuller 21A"],["Fuller 22A", "Fuller 23A", "Fuller 24A"]],
+  [["Fuller 25A", "Fuller 26A", "Fuller 27A", "Fuller 28A"],["Fuller 29A", "Fuller 30A", "Fuller 31A", "Fuller 32A"],["Fuller 33A", "Fuller 34A", "Fuller 35A"]],
+  [["Fuller 36A", "Fuller 37A", "Fuller 38A", "Fuller 39A"],["Grant 1A", "Grant 2A", "Grant 40A", "Grant 41A"],["Grant 42A", "Grant 43A", "Grant 44A"]],
+  [["Grant 45A", "Grant 46A", "Grant 47A", "Grant 48A"],["Grant 49A", "Grant 50A", "Grant 51A", "Grant 52A"],["Grant 53A", "Grant 54A", "Grant 55A"]],
+  [["Grant 56A", "Grant 57A", "Grant 58A", "Grant 59A"],["Grant 60A", "Grant 61A", "Grant 62A", "Grant 63A"],["Grant 64A", "Grant 65A", "Grant 66A"]],
+  [["Grant 67A", "Grant 68A", "Grant 69A", "Grant 70A"],["Grant 71A", "Grant 72A", "Grant 73A"],["Grant 74A", "Grant 75A", "Grant 76A"]]
+];
+const SOUTH_SCHED = [
+  [["Stanford 20B", "Stanford 20C", "Stanford 20D", "Stanford 21A"],["Stanford 22A", "Stanford 23A", "Stanford 23B", "Stanford 24A"],["Stanford 25A", "Stanford 26A", "Stanford 27A"]],
+  [["Stanford 28A", "Stanford 28B", "Stanford 29A", "Stanford 29B"],["Stanford 30A", "Stanford 30B", "Stanford 30D", "Stanford 31A"],["Stanford 31B", "Stanford 31C", "Stanford 32A"]],
+  [["Stanford 32B", "Stanford 33A", "Stanford 33B", "Stanford 34B"],["Stanford 34C", "Stanford 34D", "Stanford 35B"],["Stanford 35C", "Stanford 35D", "Stanford 36A"]],
+  [["Stanford 36B", "Graham 1A", "Graham 1B", "Graham 2A"],["Graham 2B", "Graham 2C", "Graham 3B"],["Graham 3C", "Graham 3D", "Graham 4A"]],
+  [["Graham 4B", "Graham 5A", "Graham 5B", "Graham 6B"],["Graham 6C", "Graham 6D", "Graham 7A"],["Graham 7B", "Graham 7C", "Graham 8A"]],
+  [["Graham 8B", "Graham 9A", "Graham 9B", "Graham 10A"],["Graham 11A", "Graham 12A", "Graham 13A"],["Graham 14A", "Graham 14B", "Graham 15A"]],
+  [["Graham 16A", "Graham 17B", "Graham 17C", "Graham 17D"],["Graham 18A", "Graham 18B", "Graham 18C"],["Graham 19A", "Graham 19B", "Graham 19C"]]
+];
+
+
+const QUARTER_MONTHS = {
+  1: ['January','February','March'],
+  2: ['April','May','June'],
+  3: ['July','August','September'],
+  4: ['October','November','December']
+};
+
+const HALF_MONTHS = {
+  1: ['January','February','March','April','May','June'],
+  2: ['July','August','September','October','November','December']
+};
+
+function splitInto3(arr){
+  const n=arr.length, s1=Math.ceil(n/3), s2=Math.ceil((n-s1)/2);
+  return [arr.slice(0,s1), arr.slice(s1,s1+s2), arr.slice(s1+s2)];
+}
+
+function splitConv(arr){
+  // Split into 6 groups aligned with the 3-group review split (each rev group halved)
+  const rev=splitInto3(arr);
+  const groups=[];
+  for(const g of rev){
+    const h=Math.ceil(g.length/2);
+    groups.push(g.slice(0,h), g.slice(h));
+  }
+  return groups;
+}
+
+const WING_META = {
+  north: { label:'⬆ North', sub:'Fuller + Grant', cls:'north', sched: NORTH_SCHED },
+  south: { label:'⬇ South', sub:'Stanford + Graham', cls:'south', sched: SOUTH_SCHED }
+};
+
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const SHIFTS = ['AM','PM','ND'];
+const SHIFT_ICON = {AM:'☀',PM:'🌤',ND:'🌙'};
+
+const RESET_PWD = 'berkeley';
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let db = null;
+let convQ=2, convH=1, revQ=2, weekOff=0;
+let convSt={}, revSt={}, weekSt={}, recogSt={conv:{},rev:{}};
+let ctx={}, resetTarget=null, currentModal=null;
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+const sid = s => s.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'-');
+const nowStr = () => new Date().toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+function isoWeek(off=0){
+  const d=new Date(); d.setDate(d.getDate()+off*7);
+  const day=d.getDay()||7; d.setDate(d.getDate()-day+1);
+  return d.toISOString().slice(0,10).replace(/-/g,'');
+}
+function isoDay(off=0){ const d=new Date(); d.setDate(d.getDate()+off); return d.toISOString().slice(0,10).replace(/-/g,''); }
+
+function fmtWeek(off=0){
+  const d=new Date(); d.setDate(d.getDate()+off*7);
+  const day=d.getDay()||7; d.setDate(d.getDate()-day+1);
+  const e=new Date(d); e.setDate(d.getDate()+6);
+  const isThisWeek=off===0;
+  return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) + ' – ' + e.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) + (isThisWeek?' (This Week)':off<0?' (Past)':' (Future)');
+}
+function fmtDay(off=0){
+  const d=new Date(); d.setDate(d.getDate()+off);
+  return d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL / TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+function switchPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function setH(type,h,btn){
+  btn.closest('.qrow').querySelectorAll('.qbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  convH=h; renderBeds('conv'); calcProgress('conv');
+}
+function setQ(type,q,btn){
+  btn.closest('.qrow').querySelectorAll('.qbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  if(type==='rev') revQ=q;
+  renderBeds(type); calcProgress(type);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER BEDS (conv / rev)
+// ═══════════════════════════════════════════════════════════
+function renderBeds(type){
+  const el=document.getElementById(type+'-beds');
+  const st=type==='conv'?convSt:revSt;
+  let html='';
+
+  if(type==='conv'){
+    // 6-monthly half-year layout
+    const months=HALF_MONTHS[convH];
+    const periodKey=`conv_H${convH}`;
+    for(const [wid,meta] of Object.entries(WING_META)){
+      const rooms=ALL_ROOMS[wid];
+      const groups=splitConv(rooms);
+      const totalDone=rooms.filter(r=>{const s=st[`conv_H${convH}_${sid(r)}`];return s==='done'||s==='na';}).length;
+      html+=`<div class="wing-block"><div class="wing-row">
+        <span class="wlabel ${meta.cls}">${meta.label}</span>
+        <span class="wsub">${meta.sub}</span>
+        <span class="wcnt">${totalDone} / ${rooms.length} done</span>
+      </div><div class="month-cols-6">`;
+      groups.forEach((group,mi)=>{
+        const mCls=`m${mi+1}`;
+        const mDone=group.filter(r=>{const s=st[`conv_H${convH}_${sid(r)}`];return s==='done'||s==='na';}).length;
+        html+=`<div class="month-col">
+          <div class="month-hdr ${mCls}">
+            <span>${months[mi]}</span>
+            <span class="month-cnt">${mDone}/${group.length}</span>
+          </div>
+          <div class="bed-grid">`;
+        for(const r of group){
+          const k=`conv_H${convH}_${sid(r)}`;
+          const s=st[k]||'not-done';
+          const staff=st[k+'_staff'];
+          const tip=s==='done'&&staff?`✓ ${staff} · ${st[k+'_ts']}`:r;
+          const inner=s==='done'&&staff?`${r}<span class="bed-staff">${staff}</span><span class="bed-check">✓</span>`:r;
+          html+=`<div class="bed ${s}" id="bed-conv-${sid(r)}" title="${tip}"
+            onclick="openRec('conv','${wid}','${r}')"
+            oncontextmenu="qNA(event,'conv','${wid}','${r}')">${inner}</div>`;
+        }
+        html+=`</div></div>`;
+      });
+      html+=`</div></div>`;
+    }
+  } else {
+    // 3-monthly quarterly layout (reviews)
+    const q=revQ;
+    const months=QUARTER_MONTHS[q];
+    for(const [wid,meta] of Object.entries(WING_META)){
+      const rooms=ALL_ROOMS[wid];
+      const groups=splitInto3(rooms);
+      const totalDone=rooms.filter(r=>{const s=st[`rev_${q}_${sid(r)}`];return s==='done'||s==='na';}).length;
+      html+=`<div class="wing-block"><div class="wing-row">
+        <span class="wlabel ${meta.cls}">${meta.label}</span>
+        <span class="wsub">${meta.sub}</span>
+        <span class="wcnt">${totalDone} / ${rooms.length} done</span>
+      </div><div class="month-cols">`;
+      groups.forEach((group,mi)=>{
+        const mCls=['m1','m2','m3'][mi];
+        const mDone=group.filter(r=>{const s=st[`rev_${q}_${sid(r)}`];return s==='done'||s==='na';}).length;
+        html+=`<div class="month-col">
+          <div class="month-hdr ${mCls}">
+            <span>${months[mi]}</span>
+            <span class="month-cnt">${mDone}/${group.length}</span>
+          </div>
+          <div class="bed-grid">`;
+        for(const r of group){
+          const k=`rev_${q}_${sid(r)}`;
+          const s=st[k]||'not-done';
+          const staff=st[k+'_staff'];
+          const tip=s==='done'&&staff?`✓ ${staff} · ${st[k+'_ts']}`:r;
+          const inner=s==='done'&&staff?`${r}<span class="bed-staff">${staff}</span><span class="bed-check">✓</span>`:r;
+          html+=`<div class="bed ${s}" id="bed-rev-${sid(r)}" title="${tip}"
+            onclick="openRec('rev','${wid}','${r}')"
+            oncontextmenu="qNA(event,'rev','${wid}','${r}')">${inner}</div>`;
+        }
+        html+=`</div></div>`;
+      });
+      html+=`</div></div>`;
+    }
+  }
+  el.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER WEEKLY NOTES
+// ═══════════════════════════════════════════════════════════
+function renderWeek(){
+  const wk=isoWeek(weekOff);
+  document.getElementById('week-lbl').textContent=fmtWeek(weekOff);
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML='';
+
+  for(const [wid,meta] of Object.entries(WING_META)){
+    const sched=meta.sched; // array of 7 days: each day = [[am rooms],[pm rooms],[nd rooms]]
+    const totalRooms=ALL_ROOMS[wid].length;
+    let wingDone=0;
+
+    // Build column
+    const col=document.createElement('div');
+    col.className='wing-col';
+
+    // Wing header
+    const hdr=document.createElement('div');
+    hdr.className=`wing-col-hdr ${meta.cls}`;
+    hdr.innerHTML=`<span class="wing-col-name ${meta.cls}">${meta.label}</span><span class="wing-col-sub">${meta.sub}</span><span class="wing-col-cnt" id="wcnt-${wid}">0 / ${totalRooms} done</span>`;
+    col.appendChild(hdr);
+
+    const cards=document.createElement('div');
+    cards.className='day-cards';
+
+    DAYS.forEach((dayName,di)=>{
+      const isSun=di===6;
+      const [amRooms,pmRooms,ndRooms]=sched[di];
+      const shiftMap={AM:amRooms,PM:pmRooms,ND:ndRooms};
+      const dayTotal=amRooms.length+pmRooms.length+ndRooms.length;
+      let dayDone=0;
+
+      const card=document.createElement('div');
+      card.className='day-card';
+
+      const dHdr=document.createElement('div');
+      dHdr.className=`day-hdr ${isSun?'sun':'reg'}`;
+
+      const shRow=document.createElement('div');
+      shRow.className='shifts-row';
+
+      SHIFTS.forEach(sh=>{
+        const rooms=shiftMap[sh]||[];
+        let shDone=0;
+        const shCol=document.createElement('div');
+        shCol.className='shift-col';
+
+        const shHdr=document.createElement('div');
+        shHdr.className=`sh-hdr ${sh.toLowerCase()}-hdr`;
+        const shTag=document.createElement('span');
+        shTag.className=`sh-tag`;
+        shTag.textContent=`${SHIFT_ICON[sh]} ${sh}`;
+        const shCnt=document.createElement('span');
+        shCnt.className='sh-cnt';
+        shCnt.id=`shcnt-${wid}-${di}-${sh}`;
+        shHdr.appendChild(shTag); shHdr.appendChild(shCnt);
+        shCol.appendChild(shHdr);
+
+        const bedsWrap=document.createElement('div');
+        bedsWrap.className='wbeds';
+
+        rooms.forEach(room=>{
+          const k=`week_${wid}_${wk}_d${di}_${sh}_${sid(room)}`;
+          const s=weekSt[k]||'not-done';
+          if(s==='done'||s==='na'){ shDone++; dayDone++; wingDone++; }
+          const chip=document.createElement('div');
+          chip.className=`wbed ${s}`;
+          chip.id=`wb-${sid(k)}`;
+          const staff=weekSt[k+'_staff'];
+          chip.title=s==='done'&&staff?`✓ ${staff} · ${weekSt[k+'_ts']}`:room;
+          chip.innerHTML=s==='done'&&staff?`${room}<span class="wbed-staff">${staff}</span><span class="wbed-check">✓</span>`:room;
+          chip.addEventListener('click',()=>openWeekRec(wid,room,sh,di,wk));
+          chip.addEventListener('contextmenu',e=>{e.preventDefault();qWeekNA(wid,room,sh,di,wk);});
+          bedsWrap.appendChild(chip);
+        });
+
+        shCnt.textContent=`${shDone}/${rooms.length}`;
+        if(shDone===rooms.length&&rooms.length>0) shCnt.classList.add('done');
+        shCol.appendChild(bedsWrap);
+        shRow.appendChild(shCol);
+      });
+
+      const allDone=dayDone===dayTotal&&dayTotal>0;
+      dHdr.innerHTML=`<span class="day-name">${dayName}${isSun?' ☀':''}</span><span class="day-beds-count">${dayTotal} rooms</span><span class="day-prog ${allDone?'all-done':''}">${dayDone} / ${dayTotal} done</span>`;
+      card.appendChild(dHdr);
+      card.appendChild(shRow);
+
+      if(isSun){
+        const note=document.createElement('div');
+        note.className='catchup-note';
+        note.textContent=`📋 Sunday ☀ — Scheduled rooms plus catch-up for any outstanding notes this week.`;
+        card.appendChild(note);
+      }
+
+      cards.appendChild(card);
+    });
+
+    col.appendChild(cards);
+    grid.appendChild(col);
+
+    // update wing count
+    setTimeout(()=>{
+      const wc=document.getElementById(`wcnt-${wid}`);
+      if(wc) wc.textContent=`${wingDone} / ${totalRooms} done`;
+    },0);
+  }
+
+  calcProgress('week');
+}
+
+function chWeek(d){ weekOff+=d; renderWeek(); }
+
+// ═══════════════════════════════════════════════════════════
+// RECORDING MODALS
+// ═══════════════════════════════════════════════════════════
+function openRec(type,wid,room){
+  const k=type==='conv'?`conv_H${convH}_${sid(room)}`:`rev_${revQ}_${sid(room)}`;
+  const st=type==='conv'?convSt:revSt;
+  ctx={type,wid,room,k,st};
+  document.getElementById('rec-title').textContent=room;
+  document.getElementById('rec-sub').textContent=type==='conv'?`Care Conversation · H${convH} · ${WING_META[wid].label}`:`Care Review · Q${revQ} · ${WING_META[wid].label}`;
+  document.getElementById('rec-ts').textContent=`🕐 ${nowStr()}`;
+  document.getElementById('rec-name').value=st[k+'_staff']||localStorage.getItem('bv_staff')||'';
+  openM('rec');
+}
+function openWeekRec(wid,room,sh,di,wk){
+  const k=`week_${wid}_${wk}_d${di}_${sh}_${sid(room)}`;
+  ctx={type:'week',wid,room,sh,di,wk,k};
+  document.getElementById('rec-title').textContent=room;
+  document.getElementById('rec-sub').textContent=`${DAYS[di]} · ${SHIFT_ICON[sh]} ${sh} · ${WING_META[wid].label}`;
+  document.getElementById('rec-ts').textContent=`🕐 ${nowStr()}`;
+  document.getElementById('rec-name').value=weekSt[ctx.k+'_staff']||localStorage.getItem('bv_staff')||'';
+  openM('rec');
+}
+function doComplete(){
+  const name=document.getElementById('rec-name').value.trim();
+  if(!name){document.getElementById('rec-name').style.borderColor='var(--red)';return;}
+  localStorage.setItem('bv_staff',name);
+  const ts=nowStr();
+  if(ctx.type==='week'){
+    weekSt[ctx.k]='done'; weekSt[ctx.k+'_staff']=name; weekSt[ctx.k+'_ts']=ts;
+    persist('week'); renderWeek(); refreshCatchupIfOpen();
+  } else {
+    ctx.st[ctx.k]='done'; ctx.st[ctx.k+'_staff']=name; ctx.st[ctx.k+'_ts']=ts;
+    persist(ctx.type);
+    renderBeds(ctx.type);
+    calcProgress(ctx.type);
+    logRecog(name,ctx.type);
+  }
+  closeM('rec');
+}
+function doUncheck(){
+  if(ctx.type==='week'){
+    delete weekSt[ctx.k]; delete weekSt[ctx.k+'_staff']; delete weekSt[ctx.k+'_ts'];
+    persist('week'); renderWeek(); refreshCatchupIfOpen();
+  } else {
+    delete ctx.st[ctx.k]; delete ctx.st[ctx.k+'_staff']; delete ctx.st[ctx.k+'_ts'];
+    persist(ctx.type);
+    renderBeds(ctx.type);
+    calcProgress(ctx.type);
+  }
+  closeM('rec');
+}
+function doNA(){
+  if(ctx.type==='week'){
+    weekSt[ctx.k]='na'; persist('week'); renderWeek(); refreshCatchupIfOpen();
+  } else {
+    ctx.st[ctx.k]='na'; persist(ctx.type);
+    renderBeds(ctx.type);
+    calcProgress(ctx.type);
+  }
+  closeM('rec');
+}
+function refreshCatchupIfOpen(){
+  const ov=document.getElementById('catchup-overlay');
+  if(ov && ov.classList.contains('open')) showCatchup();
+}
+function qNA(e,type,wid,room){
+  e.preventDefault();
+  const k=type==='conv'?`conv_H${convH}_${sid(room)}`:`rev_${revQ}_${sid(room)}`;
+  const st=type==='conv'?convSt:revSt;
+  st[k]=st[k]==='na'?'not-done':'na'; persist(type);
+  renderBeds(type);
+  calcProgress(type);
+}
+function qWeekNA(wid,room,sh,di,wk){
+  const k=`week_${wid}_${wk}_d${di}_${sh}_${sid(room)}`;
+  weekSt[k]=weekSt[k]==='na'?'not-done':'na'; persist('week'); renderWeek();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════════════
+function calcProgress(type){
+  let nD=0,nT=0,sD=0,sT=0;
+  if(type==='conv'||type==='rev'){
+    const st=type==='conv'?convSt:revSt;
+    for(const [wid,rooms] of [['north',ALL_ROOMS.north],['south',ALL_ROOMS.south]]){
+      for(const r of rooms){
+        const k=type==='conv'?`conv_H${convH}_${sid(r)}`:`rev_${revQ}_${sid(r)}`;
+        const s=st[k];
+        if(wid==='north'){nT++;if(s==='done'||s==='na')nD++;}
+        else{sT++;if(s==='done'||s==='na')sD++;}
+      }
+    }
+  } else if(type==='week'){
+    const wk=isoWeek(weekOff);
+    for(const [wid,meta] of Object.entries(WING_META)){
+      meta.sched.forEach(([am,pm,nd],di)=>{
+        for(const [sh,rooms] of [['AM',am],['PM',pm],['ND',nd]]){
+          for(const r of rooms){
+            const s=weekSt[`week_${wid}_${wk}_d${di}_${sh}_${sid(r)}`];
+            if(wid==='north'){nT++;if(s==='done'||s==='na')nD++;}
+            else{sT++;if(s==='done'||s==='na')sD++;}
+          }
+        }
+      });
+    }
+  }
+  const tot=nT+sT, done=nD+sD, pct=tot?Math.round(done/tot*100):0;
+  const pfx=type==='conv'?'conv':type==='rev'?'rev':'week';
+  document.getElementById(pfx+'-n-lbl').textContent=`North ${nD}/${nT}`;
+  document.getElementById(pfx+'-s-lbl').textContent=`South ${sD}/${sT} · Overall ${pct}%`;
+  document.getElementById(pfx+'-pct').textContent=pct+'%';
+  document.getElementById(pfx+'-bar').style.width=pct+'%';
+  document.getElementById('pill-'+type).textContent=pct+'%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// OUTSTANDING
+// ═══════════════════════════════════════════════════════════
+function showOut(type){
+  document.getElementById('ov-title').textContent=
+    type==='conv'?'⚠ Outstanding Care Conversations':
+    type==='rev'?'⚠ Outstanding Care Reviews':'☀ Outstanding Weekly Notes';
+  let html='';
+  if(type==='conv'||type==='rev'){
+    const st=type==='conv'?convSt:revSt;
+    if(type==='conv'){
+      const months=HALF_MONTHS[convH];
+      for(const [wid,rooms] of [['north',ALL_ROOMS.north],['south',ALL_ROOMS.south]]){
+        const groups=splitConv(rooms);
+        html+=`<p style="font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 6px;">${WING_META[wid].label}</p>`;
+        groups.forEach((group,mi)=>{
+          const out=group.filter(r=>{const s=st[`conv_H${convH}_${sid(r)}`];return !s||s==='not-done';});
+          if(out.length) html+=`<p style="font-size:11px;color:var(--muted);margin:4px 0 3px;font-weight:600;">${months[mi]} — ${out.length} outstanding</p><div class="out-list">${out.map(r=>`<span class="out-bed">${r}</span>`).join('')}</div>`;
+        });
+      }
+    } else {
+      const months=QUARTER_MONTHS[revQ];
+      for(const [wid,rooms] of [['north',ALL_ROOMS.north],['south',ALL_ROOMS.south]]){
+        const groups=splitInto3(rooms);
+        html+=`<p style="font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 6px;">${WING_META[wid].label}</p>`;
+        groups.forEach((group,mi)=>{
+          const out=group.filter(r=>{const s=st[`rev_${revQ}_${sid(r)}`];return !s||s==='not-done';});
+          if(out.length) html+=`<p style="font-size:11px;color:var(--muted);margin:4px 0 3px;font-weight:600;">${months[mi]} — ${out.length} outstanding</p><div class="out-list">${out.map(r=>`<span class="out-bed">${r}</span>`).join('')}</div>`;
+        });
+      }
+    }
+  } else {
+    const wk=isoWeek(weekOff);
+    for(const [wid,meta] of Object.entries(WING_META)){
+      const dayOut=[];
+      meta.sched.forEach(([am,pm,nd],di)=>{
+        const out=[];
+        for(const [sh,rooms] of [['AM',am],['PM',pm],['ND',nd]]){
+          const o=rooms.filter(r=>{const s=weekSt[`week_${wid}_${wk}_d${di}_${sh}_${sid(r)}`];return !s||s==='not-done';});
+          if(o.length) out.push(`<b>${sh}:</b> ${o.join(', ')}`);
+        }
+        if(out.length) dayOut.push(`<p style="font-size:11px;margin:2px 0 4px 8px;"><b>${DAYS[di]}:</b> ${out.join(' · ')}</p>`);
+      });
+      if(dayOut.length) html+=`<p style="font-size:12px;color:var(--muted);margin:8px 0 2px;">${meta.label}</p>${dayOut.join('')}`;
+    }
+  }
+  document.getElementById('ov-body').innerHTML=html||'<p class="out-none">✓ All rooms complete!</p>';
+  document.getElementById('ov-out').classList.add('open');
+}
+function closeOv(){ document.getElementById('ov-out').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════
+// SUNDAY CATCH-UP (Weekly Notes)
+// ═══════════════════════════════════════════════════════════
+function showCatchup(){
+  const wk=isoWeek(weekOff);
+  let outCount=0, doneCount=0, naCount=0;
+  let html='';
+
+  for(const [wid,meta] of Object.entries(WING_META)){
+    const pillCls=meta.cls;
+    let wingHtml=`<div class="cu-wing-pill ${pillCls}">${meta.label.replace(/[⬆⬇]\s*/,'')}</div>`;
+    let wingHasContent=false;
+
+    meta.sched.forEach(([am,pm,nd],di)=>{
+      const shiftSets=[['AM',am],['PM',pm],['ND',nd]];
+      let dayChips='';
+      let dayHasRooms=false;
+
+      shiftSets.forEach(([sh,rooms])=>{
+        rooms.forEach(room=>{
+          dayHasRooms=true;
+          const k=`week_${wid}_${wk}_d${di}_${sh}_${sid(room)}`;
+          const s=weekSt[k]||'not-done';
+          const staff=weekSt[k+'_staff'];
+          let cls='out';
+          if(s==='done'){ cls='done'; doneCount++; }
+          else if(s==='na'){ cls='na'; naCount++; }
+          else { cls='out'; outCount++; }
+          dayChips+=`<div class="cu-chip ${cls}" id="cu-${sid(k)}"
+            onclick="openWeekRec('${wid}','${room}','${sh}',${di},'${wk}')"
+            oncontextmenu="event.preventDefault();qWeekNA('${wid}','${room}','${sh}',${di},'${wk}');showCatchup();">${room}<span class="cu-shift">${sh}</span>${staff?`<span class="cu-name">${staff}</span>`:''}</div>`;
+        });
+      });
+
+      if(dayHasRooms){
+        wingHasContent=true;
+        wingHtml+=`<div class="cu-day-block"><div class="cu-day-title">${DAYS[di]}</div><div class="cu-chip-grid">${dayChips}</div></div>`;
+      }
+    });
+
+    if(wingHasContent) html+=wingHtml;
+  }
+
+  document.getElementById('cu-body').innerHTML=html;
+  const total=outCount+doneCount+naCount;
+  const pct=total?Math.round((doneCount+naCount)/total*100):0;
+  document.getElementById('cu-outstanding').textContent=outCount;
+  document.getElementById('cu-complete').textContent=doneCount;
+  document.getElementById('cu-na').textContent=naCount;
+  document.getElementById('cu-bar').style.width=pct+'%';
+  document.getElementById('catchup-overlay').classList.add('open');
+}
+function closeCatchup(){ document.getElementById('catchup-overlay').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════
+function askReset(type){
+  resetTarget=type;
+  document.getElementById('reset-lbl').textContent=
+    type==='conv'?`H${convH} Conversations`:type==='rev'?`Q${revQ} Reviews`:'this week\'s notes';
+  document.getElementById('reset-err').style.display='none';
+  document.getElementById('reset-pwd').value='';
+  openM('reset');
+}
+function doReset(){
+  if(document.getElementById('reset-pwd').value!==RESET_PWD){
+    document.getElementById('reset-err').style.display='block'; return;
+  }
+  if(resetTarget==='conv'){ Object.keys(convSt).filter(k=>k.startsWith(`conv_H${convH}_`)).forEach(k=>delete convSt[k]); persist('conv'); renderBeds('conv'); calcProgress('conv');}
+  else if(resetTarget==='rev'){ Object.keys(revSt).filter(k=>k.startsWith(`rev_${revQ}_`)).forEach(k=>delete revSt[k]); persist('rev'); renderBeds('rev'); calcProgress('rev');}
+  else if(resetTarget==='week'){ const wk=isoWeek(weekOff); Object.keys(weekSt).filter(k=>k.includes(wk)).forEach(k=>delete weekSt[k]); persist('week'); renderWeek();}
+  closeM('reset');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TEAM RECOGNITION
+// ═══════════════════════════════════════════════════════════
+function logRecog(name,type){ if(!name)return; recogSt[type][name]=(recogSt[type][name]||0)+1; persistRecog(); renderRecog(); }
+function renderRecog(){
+  let ctot=0,rtot=0;
+  for(const [tid,lbid,col] of [['conv','lb-conv','var(--blue)'],['rev','lb-rev','var(--green)']]) {
+    const entries=Object.entries(recogSt[tid]).sort((a,b)=>b[1]-a[1]);
+    const max=entries[0]?entries[0][1]:1;
+    const tot=entries.reduce((s,[,v])=>s+v,0);
+    if(tid==='conv') ctot=tot; else rtot=tot;
+    const lb=document.getElementById(lbid);
+    lb.innerHTML=entries.length?entries.slice(0,10).map(([n,c],i)=>`<li><span class="lbr">${i+1}</span><span class="lbn">${n}<div class="lbb" style="width:${Math.round(c/max*100)}%;background:${col}"></div></span><span class="lbc">${c}</span></li>`).join(''):'<li style="color:var(--muted);font-size:13px">No entries yet</li>';
+  }
+  document.getElementById('rg-tot').textContent=ctot+rtot;
+  document.getElementById('rg-conv').textContent=ctot;
+  document.getElementById('rg-rev').textContent=rtot;
+  document.getElementById('pill-recog').textContent=ctot+rtot;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════════════════════════
+function doCSV(type){
+  let rows;
+  if(type==='conv'||type==='rev'){
+    rows=[['Wing','Month','Room','Status','Staff','Timestamp']];
+    if(type==='conv'){
+      const months=HALF_MONTHS[convH];
+      for(const [wid,rooms] of [['north',ALL_ROOMS.north],['south',ALL_ROOMS.south]]){
+        const groups=splitConv(rooms);
+        groups.forEach((group,mi)=>{ for(const r of group){ const k=`conv_H${convH}_${sid(r)}`; rows.push([WING_META[wid].label,months[mi],r,convSt[k]||'not-done',convSt[k+'_staff']||'',convSt[k+'_ts']||'']); } });
+      }
+    } else {
+      const months=QUARTER_MONTHS[revQ];
+      for(const [wid,rooms] of [['north',ALL_ROOMS.north],['south',ALL_ROOMS.south]]){
+        const groups=splitInto3(rooms);
+        groups.forEach((group,mi)=>{ for(const r of group){ const k=`rev_${revQ}_${sid(r)}`; rows.push([WING_META[wid].label,months[mi],r,revSt[k]||'not-done',revSt[k+'_staff']||'',revSt[k+'_ts']||'']); } });
+      }
+    }
+  } else if(type==='week'){
+    rows=[['Wing','Day','Shift','Room','Status','Staff','Timestamp']];
+    const wk=isoWeek(weekOff);
+    for(const [wid,meta] of Object.entries(WING_META))
+      meta.sched.forEach(([am,pm,nd],di)=>{
+        for(const [sh,rooms] of [['AM',am],['PM',pm],['ND',nd]])
+          for(const r of rooms){ const k=`week_${wid}_${wk}_d${di}_${sh}_${sid(r)}`; rows.push([meta.label,DAYS[di],sh,r,weekSt[k]||'not-done',weekSt[k+'_staff']||'',weekSt[k+'_ts']||'']); }
+      });
+  }
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`bv_${type}_${isoDay()}.csv`; a.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PERSIST / LOAD
+// ═══════════════════════════════════════════════════════════
+function persist(type){
+  const m={conv:convSt,rev:revSt,week:weekSt};
+  localStorage.setItem('bv_'+type,JSON.stringify(m[type]));
+  if(db) db.ref('bv_'+type).set(m[type]).catch(()=>{});
+}
+function persistRecog(){
+  localStorage.setItem('bv_recog',JSON.stringify(recogSt));
+  if(db) db.ref('bv_recog').set(recogSt).catch(()=>{});
+}
+function load(){
+  ['conv','rev','week'].forEach((k,i)=>{
+    try{ const d=JSON.parse(localStorage.getItem('bv_'+k)); if(d) Object.assign([convSt,revSt,weekSt][i],d); }catch(e){}
+  });
+  try{ const d=JSON.parse(localStorage.getItem('bv_recog')); if(d) Object.assign(recogSt,d); }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════════════════════════
+function openFb(){
+  document.getElementById('fb-url').value=localStorage.getItem('fb_url')||'';
+  document.getElementById('fb-key').value=localStorage.getItem('fb_key')||'';
+  document.getElementById('fb-pid').value=localStorage.getItem('fb_pid')||'';
+  document.getElementById('fb-st').textContent=db?'✓ Connected':'Not connected';
+  document.getElementById('fb-st').className='fb-st'+(db?' ok':'');
+  openM('fb');
+}
+function connectFb(){
+  const url=document.getElementById('fb-url').value.trim();
+  const key=document.getElementById('fb-key').value.trim();
+  const pid=document.getElementById('fb-pid').value.trim();
+  if(!url||!key||!pid){document.getElementById('fb-st').textContent='Please fill all fields.';document.getElementById('fb-st').className='fb-st err';return;}
+  localStorage.setItem('fb_url',url);localStorage.setItem('fb_key',key);localStorage.setItem('fb_pid',pid);
+  initFb(url,key,pid);
+}
+function initFb(url,key,pid){
+  if(typeof firebase==='undefined'){
+    const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+    s.onload=()=>{const s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';s2.onload=()=>_fb(url,key,pid);document.head.appendChild(s2);};
+    document.head.appendChild(s);
+  } else _fb(url,key,pid);
+}
+function _fb(url,key,pid){
+  try{
+    if(!firebase.apps.length) firebase.initializeApp({apiKey:key,projectId:pid,databaseURL:url});
+    db=firebase.database();
+    document.getElementById('fb-st').textContent='✓ Connected & syncing!';
+    document.getElementById('fb-st').className='fb-st ok';
+    ['conv','rev','week'].forEach(t=>{
+      db.ref('bv_'+t).on('value',snap=>{
+        const v=snap.val(); if(!v)return;
+        const m={conv:convSt,rev:revSt,week:weekSt};
+        Object.assign(m[t],v);
+        if(t==='conv'){ renderBeds('conv'); calcProgress('conv'); }
+        if(t==='rev'){  renderBeds('rev');  calcProgress('rev');  }
+        if(t==='week')  renderWeek();
+      });
+    });
+    db.ref('bv_recog').on('value',snap=>{ const v=snap.val(); if(v){Object.assign(recogSt,v);renderRecog();} });
+  }catch(e){ document.getElementById('fb-st').textContent='Error: '+e.message; document.getElementById('fb-st').className='fb-st err'; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function openM(id){ document.getElementById('modal-'+id).classList.add('open'); currentModal=id; setTimeout(()=>{const i=document.querySelector('#modal-'+id+' input');if(i)i.focus();},80); }
+function closeM(id){ document.getElementById('modal-'+id).classList.remove('open'); currentModal=null; }
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(currentModal) closeM(currentModal);
+    closeCatchup();
+    closeOv();
+  }
+});
+document.querySelectorAll('.modal-ov').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)closeM(this.id.replace('modal-',''));}));
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+load();
+renderBeds('conv'); renderBeds('rev'); renderWeek(); renderRecog();
+calcProgress('conv'); calcProgress('rev');
+
+const fu=localStorage.getItem('fb_url'),fk=localStorage.getItem('fb_key'),fp=localStorage.getItem('fb_pid');
+if(fu&&fk&&fp) initFb(fu,fk,fp);
+</script>
+</body>
+</html>
