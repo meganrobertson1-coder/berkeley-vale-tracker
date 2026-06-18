@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berkeley Vale — Firebase Setup</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:#0d1117;
+    color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    background:#161b22;
+    border:1px solid #30363d;
+    border-radius:12px;
+    max-width:480px;
+    width:100%;
+    padding:28px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .icon-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:18px;
+    font-weight:700;
+  }
+  .sub{
+    font-size:13px;
+    color:#8b949e;
+    margin-bottom:24px;
+    line-height:1.5;
+  }
+  .field{
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    color:#8b949e;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    margin-bottom:6px;
+  }
+  .value-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .value-box{
+    flex:1;
+    background:#0d1117;
+    border:1px solid #30363d;
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:13px;
+    font-family:'SF Mono',Consolas,monospace;
+    color:#e6edf3;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  .copy-btn{
+    flex-shrink:0;
+    background:#21262d;
+    border:1px solid #30363d;
+    color:#8b949e;
+    width:38px;
+    height:38px;
+    border-radius:8px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:15px;
+    transition:all .15s;
+  }
+  .copy-btn:hover{
+    border-color:#58a6ff;
+    color:#58a6ff;
+  }
+  .copy-btn.copied{
+    background:rgba(63,185,80,.15);
+    border-color:rgba(63,185,80,.4);
+    color:#3fb950;
+  }
+  .instructions{
+    margin-top:24px;
+    padding-top:20px;
+    border-top:1px solid #30363d;
+  }
+  .instructions h2{
+    font-size:13px;
+    font-weight:700;
+    color:#8b949e;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:10px;
+  }
+  .instructions ol{
+    list-style:none;
+    counter-reset:step;
+  }
+  .instructions li{
+    counter-increment:step;
+    font-size:13px;
+    line-height:1.6;
+    color:#c9d1d9;
+    padding-left:28px;
+    position:relative;
+    margin-bottom:8px;
+  }
+  .instructions li::before{
+    content:counter(step);
+    position:absolute;
+    left:0;
+    top:1px;
+    width:18px;
+    height:18px;
+    background:#1f6feb;
+    color:#fff;
+    border-radius:50%;
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .footer-note{
+    margin-top:20px;
+    font-size:12px;
+    color:#484f58;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="icon-row">
+    <span style="font-size:22px;">🔥</span>
+    <h1>Berkeley Vale — Firebase Setup</h1>
+  </div>
+  <p class="sub">Copy each value below and paste it into the matching field in the app's <strong>🔥 Firebase</strong> button. Once connected, everyone shares the same live data.</p>
+
+  <div class="field">
+    <label>Database URL</label>
+    <div class="value-row">
+      <div class="value-box" id="val-url">https://berkeleytracker-default-rtdb.asia-southeast1.firebasedatabase.app</div>
+      <button class="copy-btn" onclick="copyValue('val-url', this)" title="Copy">📋</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>API Key</label>
+    <div class="value-row">
+      <div class="value-box" id="val-key">AIzaSyBC_WZyisKLRN9pYYgUGmblApFH5jLqC1E</div>
+      <button class="copy-btn" onclick="copyValue('val-key', this)" title="Copy">📋</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Project ID</label>
+    <div class="value-row">
+      <div class="value-box" id="val-pid">berkeleytracker</div>
+      <button class="copy-btn" onclick="copyValue('val-pid', this)" title="Copy">📋</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h2>How to connect</h2>
+    <ol>
+      <li>Open the Berkeley Vale Workflows app</li>
+      <li>Click the <strong>🔥 Firebase</strong> button, top right</li>
+      <li>Copy each value above and paste into the matching field</li>
+      <li>Click <strong>Connect & Save</strong></li>
+    </ol>
+  </div>
+
+  <p class="footer-note">You only need to do this once per device.</p>
+</div>
+
+<script>
+function copyValue(id, btn){
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const original = btn.textContent;
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    setTimeout(()=>{
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  }).catch(()=>{
+    // Fallback for older browsers
+    const range = document.createRange();
+    range.selectNode(document.getElementById(id));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = '📋'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>
